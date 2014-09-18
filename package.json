@@ -1,0 +1,30 @@
+{
+  "name": "mocket-io",
+  "description": "Socket IO Mock",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inetCatapult/mocket-io.git"
+  },
+  "main": "lib/mocketio.js",
+  "scripts": {
+    "test": "grunt"
+  },
+  "dependencies": {
+    "lodash": "^2.4.1",
+    "q": "^1.0.1"
+  },
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "grunt": "^0.4.5",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-jscs": "^0.7.1",
+    "grunt-mocha-istanbul": "^2.1.0",
+    "istanbul": "^0.3.2",
+    "mocha": "^1.21.4",
+    "sinon": "^1.10.3"
+  }
+}
