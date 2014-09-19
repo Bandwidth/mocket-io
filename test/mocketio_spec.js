@@ -284,6 +284,33 @@ describe("The Socket.IO mock", function () {
 			it("should not send a message to an unrelated third client", function () {
 				expect(failUnrelatedHandler.called, "unrelated").to.be.false;
 			});
+
+			describe("and then sending a message to self (not the room)", function () {
+				var eventName = "SELF-EVENT";
+				var selfHandler;
+				var failRoomHandler;
+
+				before(function (done) {
+					selfHandler = sinon.spy();
+					failRoomHandler = sinon.spy();
+					clientB.once(eventName, failRoomHandler);
+					clientA.once(eventName, selfHandler);
+					clientA.emit(eventName, message);
+					done();
+				});
+
+				after(function () {
+					clientA.off(eventName);
+				});
+
+				it("should get the message", function () {
+					expect(selfHandler.callCount, "got message").to.equal(1);
+				});
+
+				it("should not send it to the room", function () {
+					expect(failRoomHandler.called, "sent to room").to.be.false;
+				});
+			});
 		});
 	});
 });
