@@ -34,6 +34,8 @@ describe("The Socket.IO mock", function () {
 		});
 
 		describe("...twice", function () {
+			var client;
+			var handler;
 			var handler2;
 
 			before(function (done) {
@@ -74,6 +76,8 @@ describe("The Socket.IO mock", function () {
 		});
 
 		describe("for only one of two subscribed handlers", function () {
+			var client;
+			var handler;
 			var handler2;
 
 			before(function (done) {
@@ -88,20 +92,16 @@ describe("The Socket.IO mock", function () {
 			});
 
 			it("should receive a message only on the subbed one", function () {
-				//expect(handler.called, "unsubbed").to.be.false;
+				expect(handler.called, "unsubbed").to.be.false;
 				expect(handler2.called, "subbed").to.be.true;
 			});
 		});
 
 		describe("which the client wasn't subscribed to previously", function () {
-			before(function (done) {
-				client = io.connect();
-				client.off(eventName, handler);
-				done();
-			});
-
 			it("should do nothing", function () {
 				//silently doesn't change anything
+				client = io.connect();
+				client.off(eventName, handler);
 			});
 		});
 	});
@@ -125,32 +125,35 @@ describe("The Socket.IO mock", function () {
 		});
 
 		describe("with two clients", function () {
+			var clientA;
 			var clientB;
 
 			before(function (done) {
-				client = io.connect();
+				clientA = io.connect();
 				clientB = io.connect();
-				client.join(roomName);
+				clientA.join(roomName);
 				clientB.join(roomName);
 				done();
 			});
 
 			after(function () {
-				client.leave(roomName);
+				clientA.leave(roomName);
 				clientB.leave(roomName);
 			});
 
 			it("should show up in both client room lists", function () {
-				expect(client.rooms, "client A").to.contain(roomName);
+				expect(clientA.rooms, "client A").to.contain(roomName);
 				expect(clientB.rooms, "client B").to.contain(roomName);
 			});
 		});
 	});
 
 	describe("leaving a room", function () {
-		var client;
 		var roomName = "ROOM2";
+
 		describe("which the client was in", function () {
+			var client;
+
 			before(function (done) {
 				client = io.connect();
 				client.join(roomName);
@@ -181,33 +184,31 @@ describe("The Socket.IO mock", function () {
 		});
 
 		describe("which the client was not in", function () {
-			before(function (done) {
-				client = io.connect();
-				client.leave(roomName);
-				done();
-			});
-
 			it("should do nothing", function () {
 				//expected behavior is: nothing happens
 				//if it threw an error, it failed
+				var client = io.connect();
+				client.leave(roomName);
 			});
 		});
 	});
 
 	describe("sending a message", function () {
-		var client;
-		var handler;
 		var eventName = "TEST";
 
 		//strictly speaking, in Socket.IO, there will
 		//always be 'subscriber', but for our sniffing/mocking
 		//purposes, there may not be
 		describe("to a subscriber", function () {
+			var client;
+			var handler;
+			var message = {};
+
 			before(function (done) {
 				client = io.connect();
 				handler = sinon.spy(done.bind(null, null));
 				client.once(eventName, handler);
-				client.emit(eventName, {});
+				client.emit(eventName, message);
 			});
 
 			after(function () {
@@ -216,30 +217,30 @@ describe("The Socket.IO mock", function () {
 
 			it("should call the handler once", function () {
 				expect(handler.callCount, "called").to.equal(1);
+				expect(handler.firstCall.args[0], "message").to.equal(message);
 			});
 		});
 
 		describe("with no subscriber", function () {
-			before(function (done) {
-				client = io.connect();
-				client.emit(eventName, {});
-				done();
-			});
-
 			it("should do nothing", function () {
 				//silently doesn't do anything
+				var client = io.connect();
+				client.emit(eventName, {});
 			});
 		});
 
 		describe("to another room", function () {
+			var clientA;
 			var clientB;
 			var clientC;
 			var clientD;
+			var handler;
 			var roomName = "ROOM";
 			var crossRoomEventName = "TEST2";
 			var failSelfHandler;
 			var failUnrelatedHandler;
 			var handler2;
+			var message = {};
 
 			before(function (done) {
 				failSelfHandler = sinon.spy();
@@ -247,6 +248,7 @@ describe("The Socket.IO mock", function () {
 				handler = sinon.spy();
 				handler2 = sinon.spy();
 
+				clientA = io.connect();
 				clientB = io.connect(); //client B is in target room
 				clientC = io.connect(); //client C is off in space, just to see what happens
 				clientD = io.connect(); //a second client to add to the room, to test broadcast
@@ -254,23 +256,25 @@ describe("The Socket.IO mock", function () {
 				clientB.join(roomName);
 				clientD.join(roomName);
 				clientC.once(crossRoomEventName, failUnrelatedHandler);
-				client.once(crossRoomEventName, failSelfHandler);
+				clientA.once(crossRoomEventName, failSelfHandler);
 				clientB.once(crossRoomEventName, handler);
 				clientD.once(crossRoomEventName, handler2);
-				client.to(roomName).emit(crossRoomEventName, {});
+				clientA.to(roomName).emit(crossRoomEventName, message);
 				done();
 			});
 
 			after(function () {
+				clientA.off(crossRoomEventName);
 				clientB.off(crossRoomEventName);
-				client.off(crossRoomEventName);
 				clientC.off(crossRoomEventName);
 				clientB.leave(roomName);
 			});
 
 			it("should send the message to all clients in the other room", function () {
 				expect(handler.callCount, "first client").to.equal(1);
+				expect(handler.firstCall.args[0], "first message").to.equal(message);
 				expect(handler2.callCount, "second client").to.equal(1);
+				expect(handler2.firstCall.args[0], "second message").to.equal(message);
 			});
 
 			it("should not send a message to itself (not in room)", function () {
