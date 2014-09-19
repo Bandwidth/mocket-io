@@ -300,7 +300,8 @@ describe("The Socket.IO mock", function () {
 				});
 
 				after(function () {
-					clientA.off(eventName);
+					clientA.off(eventName, selfHandler);
+					clientB.off(eventName, failRoomHandler);
 				});
 
 				it("should get the message", function () {
