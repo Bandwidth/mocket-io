@@ -1,5 +1,7 @@
 Mocket.IO
 =========
+[![Build Status](https://travis-ci.org/inetCatapult/mocket-io.svg?branch=master)](https://travis-ci.org/inetCatapult/mocket-io)
+
 A partial mock of Socket.IO for use with Incubator projects
 
 ##Usage
