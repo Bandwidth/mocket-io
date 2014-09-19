@@ -3,10 +3,10 @@ node_js:
 - '0.11'
 - '0.10'
 deploy:
-  provider: npm
-  email: incubator@bandwidth.com
-  api_key:
-    secure: iMw5d1ocWY4wgM+nAyGKIK3IYbePJuhQqim3/wib1Zv1+NQe3racKuz9oDHrjtz2F3n+18ZxEzDq3gplGNcDSaSFokZyXhC9LrWGywWzUVL8gtgYBakftxXM5rGchcYEigDs8YYvsfMT2SVLeXbYWW7f5khWzhxIwpFIPsvqgu0=
+  - provider: npm
+    email: incubator@bandwidth.com
+    api_key:
+      secure: iMw5d1ocWY4wgM+nAyGKIK3IYbePJuhQqim3/wib1Zv1+NQe3racKuz9oDHrjtz2F3n+18ZxEzDq3gplGNcDSaSFokZyXhC9LrWGywWzUVL8gtgYBakftxXM5rGchcYEigDs8YYvsfMT2SVLeXbYWW7f5khWzhxIwpFIPsvqgu0=
     on:
       tags: true
       branch: master
