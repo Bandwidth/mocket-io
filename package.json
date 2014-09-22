@@ -11,6 +11,9 @@
   "scripts": {
     "test": "grunt"
   },
+  "dependencies": {
+    "lodash": "^2.4.1"
+  },
   "devDependencies": {
     "chai": "^1.9.1",
     "grunt": "^0.4.5",
