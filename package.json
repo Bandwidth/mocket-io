@@ -1,7 +1,7 @@
 {
   "name": "mocket-io",
   "description": "Socket IO Mock",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": false,
   "repository": {
     "type": "git",
@@ -10,10 +10,6 @@
   "main": "lib/mocketio.js",
   "scripts": {
     "test": "grunt"
-  },
-  "dependencies": {
-    "lodash": "^2.4.1",
-    "q": "^1.0.1"
   },
   "devDependencies": {
     "chai": "^1.9.1",
@@ -25,6 +21,7 @@
     "grunt-jscs": "^0.7.1",
     "grunt-mocha-istanbul": "^2.1.0",
     "istanbul": "^0.3.2",
+    "lodash": "^2.4.1",
     "mocha": "^1.21.4",
     "sinon": "^1.10.3"
   }
