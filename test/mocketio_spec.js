@@ -369,4 +369,29 @@ describe("The Socket.IO mock", function () {
 			expect(client.testPropertyB, "test prop B").to.equal(propValueB);
 		});
 	});
+
+	describe("running middleware which throws an error", function () {
+		var client;
+		var propValueA = "test value a";
+		var propValueB = "test value b";
+		var middlewareBSpy;
+
+		before(function () {
+			function middlewareA (socket, next) {
+				next(new Error("error!"));
+			}
+			function middlewareB (socket, next) {
+				socket.testPropertyB = propValueB;
+				next();
+			}
+			middlewareBSpy = sinon.spy(middlewareB);
+			io.use(middlewareA);
+			io.use(middlewareB);
+			client = io.connect();
+		});
+
+		it("should not reach the second middleware", function () {
+			expect(middlewareBSpy.called, "called").to.be.false;
+		});
+	});
 });
