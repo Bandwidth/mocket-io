@@ -372,8 +372,6 @@ describe("The Socket.IO mock", function () {
 
 	describe("running middleware which throws an error", function () {
 		var client;
-		var propValueA = "test value a";
-		var propValueB = "test value b";
 		var middlewareBSpy;
 
 		before(function () {
@@ -381,7 +379,7 @@ describe("The Socket.IO mock", function () {
 				next(new Error("error!"));
 			}
 			function middlewareB (socket, next) {
-				socket.testPropertyB = propValueB;
+				socket.testPropertyB = "test";
 				next();
 			}
 			middlewareBSpy = sinon.spy(middlewareB);
