@@ -392,4 +392,18 @@ describe("The Socket.IO mock", function () {
 			expect(middlewareBSpy.called, "called").to.be.false;
 		});
 	});
+
+	describe("assigning socket options", function () {
+		var client;
+		var options = { foo : "bar" };
+
+		before(function () {
+			io.connect.configure(options);
+			client = io.connect();
+		});
+
+		it("should assign the options to the socket", function () {
+			expect(client).to.have.property("foo", "bar");
+		});
+	});
 });

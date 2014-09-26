@@ -23,3 +23,24 @@ A partial mock of Socket.IO for use with Incubator projects
     socketB.to("room A").emit("roomEvent", "message");
     
     expect(handler.called).to.be.true;
+
+###Socket Options
+
+    var io = require("mocket-io").io;
+
+    io.connect.configure({ auth: { ... } });
+
+    var socket = io.connect();
+    expect(socket).to.have.property("auth");
+
+###Middleware
+
+    var io = require("mocket-io").io;
+
+    io.use(function (socket, next) {
+        socket.foo = "bar";
+        next();
+    });
+
+    var socket = io.connect();
+    expect(socket).to.have.property("foo");
