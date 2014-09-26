@@ -12,6 +12,10 @@ describe("The Socket.IO mock", function () {
 			done();
 		});
 
+		after(function () {
+			io.reset();
+		});
+
 		it("should register the client to IO", function () {
 			expect(io.sockets).to.contain(client);
 		});
@@ -27,6 +31,11 @@ describe("The Socket.IO mock", function () {
 			handler = sinon.spy(done.apply(null, null));
 			client.on(eventName, handler);
 			client.emit(eventName, {});
+		});
+
+		after(function () {
+			client.off(eventName);
+			io.reset();
 		});
 
 		it("should receive a message for that event", function () {
@@ -46,6 +55,11 @@ describe("The Socket.IO mock", function () {
 				client.on(eventName, handler2);
 				client.emit(eventName, {});
 				done();
+			});
+
+			after(function () {
+				client.off(eventName);
+				io.reset();
 			});
 
 			it("should get a callback on both handlers", function () {
@@ -70,6 +84,10 @@ describe("The Socket.IO mock", function () {
 				done();
 			});
 
+			after(function () {
+				io.reset();
+			});
+
 			it("should not receive a message", function () {
 				expect(handler.called, "called").to.be.false;
 			});
@@ -89,6 +107,11 @@ describe("The Socket.IO mock", function () {
 				client.off(eventName, handler); //unsub first handler
 				client.emit(eventName, {});
 				done();
+			});
+
+			after(function () {
+				client.off(eventName);
+				io.reset();
 			});
 
 			it("should receive a message only on the subbed one", function () {
@@ -139,6 +162,7 @@ describe("The Socket.IO mock", function () {
 			after(function () {
 				clientA.leave(roomName);
 				clientB.leave(roomName);
+				io.reset();
 			});
 
 			it("should show up in both client room lists", function () {
@@ -159,6 +183,10 @@ describe("The Socket.IO mock", function () {
 				client.join(roomName);
 				client.leave(roomName);
 				done();
+			});
+
+			after(function () {
+				io.reset();
 			});
 
 			it("should not show up in room list", function () {
@@ -268,6 +296,7 @@ describe("The Socket.IO mock", function () {
 				clientB.off(crossRoomEventName);
 				clientC.off(crossRoomEventName);
 				clientB.leave(roomName);
+				io.reset();
 			});
 
 			it("should send the message to all clients in the other room", function () {
@@ -328,6 +357,10 @@ describe("The Socket.IO mock", function () {
 			client = io.connect();
 		});
 
+		after(function () {
+			io.reset();
+		});
+
 		it("should modify the socket", function () {
 			expect(client.testProperty, "test prop").to.equal(propValue);
 		});
@@ -364,6 +397,10 @@ describe("The Socket.IO mock", function () {
 			client = io.connect();
 		});
 
+		after(function () {
+			io.reset();
+		});
+
 		it("should modify the socket", function () {
 			expect(client.testPropertyA, "test prop A").to.equal(propValueA);
 			expect(client.testPropertyB, "test prop B").to.equal(propValueB);
@@ -388,6 +425,10 @@ describe("The Socket.IO mock", function () {
 			client = io.connect();
 		});
 
+		after(function () {
+			io.reset();
+		});
+
 		it("should not reach the second middleware", function () {
 			expect(middlewareBSpy.called, "called").to.be.false;
 		});
@@ -400,6 +441,10 @@ describe("The Socket.IO mock", function () {
 		before(function () {
 			io.connect.configure(options);
 			client = io.connect();
+		});
+
+		after(function () {
+			io.reset();
 		});
 
 		it("should assign the options to the socket", function () {
