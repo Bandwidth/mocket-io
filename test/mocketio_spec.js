@@ -282,4 +282,59 @@ describe("The Socket.IO mock", function () {
 			});
 		});
 	});
+
+	describe("creating middleware", function () {
+		var client;
+		var propValue = "test value";
+
+		before(function () {
+			function middleware (socket, next) {
+				socket.testProperty = propValue;
+				next();
+			}
+			io.use(middleware);
+			client = io.connect();
+		});
+
+		it("should modify the socket", function () {
+			expect(client.testProperty, "test prop").to.equal(propValue);
+		});
+
+		describe("with two sockets", function () {
+			var clientB;
+
+			before(function () {
+				clientB = io.connect();
+			});
+
+			it("should modify both sockets", function () {
+				expect(clientB.testProperty, "test prop").to.equal(propValue);
+			});
+		});
+	});
+
+	describe("chaining middleware", function () {
+		var client;
+		var propValueA = "test value a";
+		var propValueB = "test value b";
+
+		before(function () {
+			function middlewareA (socket, next) {
+				socket.testPropertyA = propValueA;
+				next();
+			}
+			function middlewareB (socket, next) {
+				socket.testPropertyB = propValueB;
+				next();
+			}
+			io.use(middlewareA);
+			io.use(middlewareB);
+			client = io.connect();
+		});
+
+		it("should modify the socket", function () {
+			expect(client.testPropertyA, "test prop A").to.equal(propValueA);
+			expect(client.testPropertyB, "test prop B").to.equal(propValueB);
+		});
+	});
 });
