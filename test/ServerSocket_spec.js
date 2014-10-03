@@ -14,4 +14,30 @@ describe("A server socket", function () {
 		expect(socket, "socket").to.be.an.instanceOf(ClientSocket);
 		expect(socket, "constructor").to.have.property("constructor", ServerSocket);
 	});
+
+	it("has a list of rooms", function () {
+		expect(socket, "rooms").to.have.property("rooms").that.deep.equals([]);
+	});
+
+	describe("joining a room", function () {
+		var name = "a room";
+
+		before(function () {
+			socket.join(name);
+		});
+
+		it("adds the room to the list of rooms", function () {
+			expect(socket.rooms, "rooms").to.contain(name);
+		});
+
+		describe("and then leaving the room", function () {
+			before(function () {
+				socket.leave(name);
+			});
+
+			it("removes the room from the list of rooms", function () {
+				expect(socket.rooms, "rooms").not.to.contain(name);
+			});
+		});
+	});
 });
