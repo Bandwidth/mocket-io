@@ -1,7 +1,9 @@
 "use strict";
+var ClientSocket = require("../lib/ClientSocket");
 var EventEmitter = require("events").EventEmitter;
 var expect       = require("chai").expect;
 var Server       = require("../lib/Server");
+var ServerSocket = require("../lib/ServerSocket");
 var sinon        = require("sinon");
 
 describe("A Server", function () {
@@ -32,15 +34,12 @@ describe("A Server", function () {
 		});
 
 		it("returns a client socket", function () {
-			// TODO: this should be fleshed out when the real class hierarchy is
-			// in place.
-			expect(socket, "socket").to.exist;
+			expect(socket, "socket").to.be.an.instanceOf(ClientSocket);
 		});
 
 		it("emits a server socket", function () {
 			expect(connection.callCount, "connection event").to.equal(1);
-			// TODO: this should be fleshed out to account for socket typing.
-			expect(connection.firstCall.args[0], "socket").to.exist;
+			expect(connection.firstCall.args[0], "socket").to.be.an.instanceOf(ServerSocket);
 		});
 	});
 });
