@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/inetCatapult/mocket-io.git"
   },
-  "main": "lib/mocketio.js",
+  "main": "lib",
   "scripts": {
     "test": "grunt"
   },
