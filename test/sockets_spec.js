@@ -82,3 +82,56 @@ describe("A socket connection", function () {
 		});
 	});
 });
+
+describe("A socket connection to a room", function () {
+	var room = "room";
+
+	var clientSocket1;
+	var clientSocket2;
+	var serverSocket1;
+	var serverSocket2;
+
+	before(function (done) {
+		var server = new Server();
+		var client = new Client(server);
+		var count = 0;
+
+		server.on("connection", function (socket) {
+			if (count === 0) {
+				serverSocket1 = socket;
+				serverSocket1.join(room);
+				count += 1;
+			}
+			else {
+				serverSocket2 = socket;
+				serverSocket2.join(room);
+				done();
+			}
+		});
+
+		clientSocket1 = client.connect();
+		clientSocket2 = client.connect();
+	});
+
+	describe("sending a message", function () {
+		var message = "A test message.";
+
+		var handler;
+
+		before(function () {
+			handler = sinon.spy();
+			clientSocket1.once("message", handler);
+
+			serverSocket2.to(room).emit("message", message);
+		});
+
+		after(function () {
+			clientSocket1.removeListener("message", handler);
+		});
+
+		it("recieves the message on the client", function () {
+			expect(handler.callCount, "message event").to.equal(1);
+			expect(handler.firstCall.args[0], "message").to.equal(message);
+		});
+	});
+});
