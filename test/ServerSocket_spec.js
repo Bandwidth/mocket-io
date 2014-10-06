@@ -1,13 +1,18 @@
 "use strict";
 var ClientSocket = require("../lib/ClientSocket");
 var expect       = require("chai").expect;
+var Namespace    = require("../lib/Namespace");
+var Server       = require("../lib/Server");
 var ServerSocket = require("../lib/ServerSocket");
+var sinon        = require("sinon");
 
 describe("A server socket", function () {
+	var namespace;
 	var socket;
 
 	before(function () {
-		socket = new ServerSocket();
+		namespace = new Namespace(new Server(), "/");
+		socket    = new ServerSocket(namespace);
 	});
 
 	it("is a client socket", function () {
@@ -25,24 +30,58 @@ describe("A server socket", function () {
 		.and.has.length.greaterThan(0);
 	});
 
+	it("has a namespace", function () {
+		expect(socket, "namespace").to.have.property("nsp", namespace);
+	});
+
+	it("has an adapter", function () {
+		expect(socket, "adapter").to.have.property("adapter", namespace.adapter);
+	});
+
 	describe("joining a room", function () {
 		var name = "a room";
 
+		var add;
+
 		before(function () {
+			add = sinon.spy(namespace.adapter, "add");
 			socket.join(name);
+		});
+
+		after(function () {
+			add.restore();
 		});
 
 		it("adds the room to the list of rooms", function () {
 			expect(socket.rooms, "rooms").to.contain(name);
 		});
 
+		it("updates the adapter", function () {
+			expect(add.callCount, "add").to.equal(1);
+			expect(add.firstCall.args[0], "socket").to.equal(socket.id);
+			expect(add.firstCall.args[1], "room").to.equal(name);
+		});
+
 		describe("and then leaving the room", function () {
+			var del;
+
 			before(function () {
+				del = sinon.spy(namespace.adapter, "del");
 				socket.leave(name);
+			});
+
+			after(function () {
+				del.restore();
 			});
 
 			it("removes the room from the list of rooms", function () {
 				expect(socket.rooms, "rooms").not.to.contain(name);
+			});
+
+			it("updates the adapter", function () {
+				expect(del.callCount, "del").to.equal(1);
+				expect(del.firstCall.args[0], "socket").to.equal(socket.id);
+				expect(del.firstCall.args[1], "room").to.equal(name);
 			});
 		});
 	});

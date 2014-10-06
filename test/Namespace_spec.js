@@ -1,4 +1,5 @@
 "use strict";
+var Adapter      = require("../lib/Adapter");
 var ClientSocket = require("../lib/ClientSocket");
 var expect       = require("chai").expect;
 var Namespace    = require("../lib/Namespace");
@@ -25,6 +26,11 @@ describe("A namespace", function () {
 	it("has a list of sockets", function () {
 		expect(namespace, "sockets").to.have.property("sockets")
 		.that.deep.equal([]);
+	});
+
+	it("has an adapter", function () {
+		expect(namespace, "adapter").to.have.property("adapter")
+		.that.is.an.instanceOf(Adapter);
 	});
 
 	describe("adding a client socket", function () {
