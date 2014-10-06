@@ -38,6 +38,10 @@ describe("A server socket", function () {
 		expect(socket, "adapter").to.have.property("adapter", namespace.adapter);
 	});
 
+	it("mirrors 'to' and 'in'", function () {
+		expect(socket.to, "mirror").to.equal(socket.in);
+	});
+
 	describe("joining a room", function () {
 		var name = "a room";
 
@@ -82,6 +86,53 @@ describe("A server socket", function () {
 				expect(del.callCount, "del").to.equal(1);
 				expect(del.firstCall.args[0], "socket").to.equal(socket.id);
 				expect(del.firstCall.args[1], "room").to.equal(name);
+			});
+		});
+	});
+
+	describe("sending a message to a room", function () {
+		var broadcast;
+		var message;
+
+		before(function () {
+			broadcast = sinon.spy(namespace.adapter, "broadcast");
+			message   = sinon.spy();
+
+			socket.once("message", message);
+			socket.to("room").emit("message", "hello");
+		});
+
+		after(function () {
+			broadcast.restore();
+			socket.removeListener("message", message);
+		});
+
+		it("does not send the message normally", function () {
+			expect(message.callCount, "message event").to.equal(0);
+		});
+
+		it("broadcasts the message to all participants except itself", function () {
+			expect(broadcast.callCount, "broadcast").to.equal(1);
+			expect(broadcast.firstCall.args[0], "packet").to.deep.equal({
+				data : [ "message", "hello" ]
+			});
+			expect(broadcast.firstCall.args[1], "options").to.deep.equal({
+				except : [ socket.id ],
+				rooms  : [ "room" ]
+			});
+		});
+
+		describe("then sending a normal message", function () {
+			before(function () {
+				socket.emit("message", "goodbye");
+			});
+
+			it("does not broadcast the second message", function () {
+				expect(broadcast.callCount, "broadcast").to.equal(1);
+			});
+
+			it("sends the message normally", function () {
+				expect(message.callCount, "message event").to.equal(1);
 			});
 		});
 	});
