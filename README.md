@@ -6,41 +6,44 @@ A partial mock of Socket.IO for use with Incubator projects
 
 ##Usage
 
-    var io = require("mocket-io").io;
+###Creating Client- and Server-side socket interfaces
+    var mocket = require("mocket-io");
 
-    var socket = io.connect();
-    var handler = sinon.spy();
-    socket.on("event", handler);
-    socket.emit("event", "message");
+    var server = new mocket.Server();
+    var client = new mocket.Client(server);
 
-    expect(handler.called).to.be.true;
-
-###Rooms
-
-    var handler = sinon.spy();
-    socket.on("roomEvent", handler);
-    socket.join("room A");
-    socketB.to("room A").emit("roomEvent", "message");
+    var clientSocket;
+    var serverSocket;
     
-    expect(handler.called).to.be.true;
-
-###Socket Options
-
-    var io = require("mocket-io").io;
-
-    io.connect.configure({ auth: { ... } });
-
-    var socket = io.connect();
-    expect(socket).to.have.property("auth");
-
-###Middleware
-
-    var io = require("mocket-io").io;
-
-    io.use(function (socket, next) {
-        socket.foo = "bar";
-        next();
+    server.once("connection", function (socket) {
+        serverSocket = socket;
     });
+    
+    clientSocket = client.connect();
 
-    var socket = io.connect();
-    expect(socket).to.have.property("foo");
+####More compact: client-only
+    var mocket = require("mocket-io");
+
+    var client = new mocket.Client(new mocket.Server());
+
+    var clientSocket = client.connect();
+
+###Subscribing to a message type
+    anySocket.on("persistentEventType", callback);
+    anySocket.once("oneTimeEventType", callback);
+
+###Sending a message to the server
+    serverSocket.on("messageType", function (message) { console.log(message); });
+    clientSocket.emit("messageType", "message");
+
+###Joining a room
+    serverSocket.join("roomName");
+
+###Sending a message to a room
+    serverSocket.to("roomName").emit("messageType", "message");
+
+###Unsubscribing a handler
+    anySocket.off("eventType", oldHandler);
+
+###Unsubscribing all handlers
+    anySocket.off("eventType");
