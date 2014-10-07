@@ -135,3 +135,33 @@ describe("A socket connection to a room", function () {
 		});
 	});
 });
+
+describe("A socket connection initiating a disconnect from the server", function () {
+	var disconnect;
+	var socket;
+
+	before(function (done) {
+		var server = new Server();
+		var client = new Client(server);
+
+		server.once("connection", function (socket) {
+			process.nextTick(function () {
+				socket.disconnect();
+				done();
+			});
+		});
+
+		socket = client.connect();
+
+		disconnect = sinon.spy();
+		socket.once("disconnect", disconnect);
+	});
+
+	after(function () {
+		socket.removeListener("disconnect", disconnect);
+	});
+
+	it("emits the 'disconnect' event on the client", function () {
+		expect(disconnect.callCount, "disconnect").to.equal(1);
+	});
+});
