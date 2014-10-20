@@ -165,3 +165,30 @@ describe("A socket connection initiating a disconnect from the server", function
 		expect(disconnect.callCount, "disconnect").to.equal(1);
 	});
 });
+
+describe("A socket connection initiating a disconnect from the client", function () {
+	var disconnect;
+	var socket;
+
+	before(function (done) {
+		var server = new Server();
+		var client = new Client(server);
+
+		disconnect = sinon.spy(done);
+
+		server.once("connection", function (connection) {
+			socket = connection;
+			socket.once("disconnect", disconnect);
+		});
+
+		client.connect().disconnect();
+	});
+
+	after(function () {
+		socket.removeListener("disconnect", disconnect);
+	});
+
+	it("emits the 'disconnect' event on the server", function () {
+		expect(disconnect.callCount, "disconnect").to.equal(1);
+	});
+});
