@@ -121,12 +121,54 @@ describe("A namespace configured with middleware", function () {
 	});
 
 	describe("running the middleware", function () {
-		before(function () {
-			namespace.run(socket);
+		var callback = sinon.spy();
+
+		describe("without an error", function () {
+			before(function () {
+				namespace.run(socket, callback);
+			});
+
+			after(function () {
+				delete socket.data;
+				callback.reset();
+			});
+
+			it("applies the middleware to new sockets in order", function () {
+				expect(socket.data, "data").to.deep.equal([ "foo", "bar" ]);
+			});
+
+			it("invokes the callback", function () {
+				expect(callback.callCount, "callback").to.equal(1);
+				expect(callback.firstCall.args[0], "arguments").to.be.null;
+			});
 		});
 
-		it("applies the middleware to new sockets in order", function () {
-			expect(socket.data, "data").to.deep.equal([ "foo", "bar" ]);
+		describe("with an error", function () {
+			var error = new Error("Simulated failure.");
+
+			function failure (socket, next) {
+				return next(error);
+			}
+
+			before(function () {
+				namespace.fns.unshift(failure);
+				namespace.run(socket, callback);
+			});
+
+			after(function () {
+				// Remove the failure middleware.
+				namespace.fns.shift();
+				callback.reset();
+			});
+
+			it("calls back with an error", function () {
+				expect(callback.callCount, "callback").to.equal(1);
+				expect(callback.firstCall.args[0], "arguments").to.equal(error);
+			});
+
+			it("does not run any subsequent middleware", function () {
+				expect(socket, "data").not.to.have.property("data");
+			});
 		});
 	});
 });
