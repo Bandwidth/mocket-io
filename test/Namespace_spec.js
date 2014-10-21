@@ -112,18 +112,20 @@ describe("A namespace", function () {
 			var client     = new ClientSocket();
 			var connection = sinon.spy();
 			var error      = new Error("Simulated failure.");
-			var failure    = sinon.spy();
 
+			var failure;
 			var run;
 			var socket;
 
-			before(function () {
+			before(function (done) {
 				run = sinon.stub(namespace, "run");
 				run.callsArgWith(1, error);
 
 				namespace.once("connection", connection);
 
+				failure = sinon.spy(done.bind(null, null));
 				client.once("error", failure);
+
 				socket = namespace.add(client);
 			});
 
