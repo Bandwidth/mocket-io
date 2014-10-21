@@ -40,52 +40,95 @@ describe("A namespace", function () {
 	});
 
 	describe("adding a client socket", function () {
-		var run;
-		var socket;
+		describe("without an error", function () {
+			var run;
+			var socket;
 
-		before(function () {
-			var client = new ClientSocket();
-
-			run    = sinon.spy(namespace, "run");
-			socket = namespace.add(client);
-		});
-
-		after(function () {
-			run.restore();
-		});
-
-		it("returns a server socket", function () {
-			expect(socket, "server socket").to.be.an.instanceOf(ServerSocket);
-		});
-
-		it("augments the socket list", function () {
-			expect(namespace.sockets, "socket list").to.include(socket);
-		});
-
-		it("runs the middleware on the socket", function () {
-			expect(run.callCount, "run").to.equal(1);
-		});
-
-		describe("and then removing it", function () {
 			before(function () {
-				namespace.remove(socket);
+				var client = new ClientSocket();
+
+				run = sinon.stub(namespace, "run");
+				run.callsArgWith(1, null);
+
+				socket = namespace.add(client);
 			});
 
-			it("reduces the socket list", function () {
-				expect(namespace.sockets, "socket list").not.to.include(socket);
+			after(function () {
+				run.restore();
 			});
 
-			describe("again", function () {
-				var sockets;
+			it("returns a server socket", function () {
+				expect(socket, "server socket").to.be.an.instanceOf(ServerSocket);
+			});
 
+			it("augments the socket list", function () {
+				expect(namespace.sockets, "socket list").to.include(socket);
+			});
+
+			it("runs the middleware on the socket", function () {
+				expect(run.callCount, "run").to.equal(1);
+			});
+
+			describe("and then removing it", function () {
 				before(function () {
-					sockets = namespace.sockets.length;
 					namespace.remove(socket);
 				});
 
-				it("does nothing", function () {
-					expect(namespace.sockets, "length").to.have.length(sockets);
+				it("reduces the socket list", function () {
+					expect(namespace.sockets, "socket list").not.to.include(socket);
 				});
+
+				describe("again", function () {
+					var sockets;
+
+					before(function () {
+						sockets = namespace.sockets.length;
+						namespace.remove(socket);
+					});
+
+					it("does nothing", function () {
+						expect(namespace.sockets, "length").to.have.length(sockets);
+					});
+				});
+			});
+		});
+
+		describe("with an error", function () {
+			var client  = new ClientSocket();
+			var error   = new Error("Simulated failure.");
+			var failure = sinon.spy();
+
+			var run;
+			var socket;
+
+			before(function () {
+				run = sinon.stub(namespace, "run");
+				run.callsArgWith(1, error);
+
+				client.once("error", failure);
+				socket = namespace.add(client);
+			});
+
+			after(function () {
+				client.removeListener("error", failure);
+				run.restore();
+			});
+
+			it("returns a server socket", function () {
+				expect(socket, "server socket").to.be.an.instanceOf(ServerSocket);
+			});
+
+			it("does not augment the socket list", function () {
+				expect(namespace.sockets, "socket list").not.to.include(socket);
+			});
+
+			it("runs the middleware on the socket", function () {
+				expect(run.callCount, "run").to.equal(1);
+			});
+
+			it("emits an error on the socket", function () {
+				expect(failure.callCount, "failure").to.equal(1);
+				expect(failure.firstCall.args[0], "message").to.equal(error.message);
 			});
 		});
 	});
