@@ -1,6 +1,7 @@
 "use strict";
 var Adapter      = require("../lib/Adapter");
 var ClientSocket = require("../lib/ClientSocket");
+var EventEmitter = require("events").EventEmitter;
 var expect       = require("chai").expect;
 var Namespace    = require("../lib/Namespace");
 var Server       = require("../lib/Server");
@@ -14,6 +15,10 @@ describe("A namespace", function () {
 	before(function () {
 		server    = new Server();
 		namespace = new Namespace(server, "/");
+	});
+
+	it("is an event emitter", function () {
+		expect(namespace, "type").to.be.an.instanceOf(EventEmitter);
 	});
 
 	it("has a name", function () {
@@ -41,11 +46,15 @@ describe("A namespace", function () {
 
 	describe("adding a client socket", function () {
 		describe("without an error", function () {
+			var connection;
 			var run;
 			var socket;
 
 			before(function () {
 				var client = new ClientSocket();
+
+				connection = sinon.spy();
+				namespace.once("connection", connection);
 
 				run = sinon.stub(namespace, "run");
 				run.callsArgWith(1, null);
@@ -54,6 +63,7 @@ describe("A namespace", function () {
 			});
 
 			after(function () {
+				namespace.removeListener("connection", connection);
 				run.restore();
 			});
 
@@ -67,6 +77,11 @@ describe("A namespace", function () {
 
 			it("runs the middleware on the socket", function () {
 				expect(run.callCount, "run").to.equal(1);
+			});
+
+			it("emits a connection event", function () {
+				expect(connection.callCount, "connection").to.equal(1);
+				expect(connection.firstCall.args[0], "socket").to.equal(socket);
 			});
 
 			describe("and then removing it", function () {
@@ -94,9 +109,10 @@ describe("A namespace", function () {
 		});
 
 		describe("with an error", function () {
-			var client  = new ClientSocket();
-			var error   = new Error("Simulated failure.");
-			var failure = sinon.spy();
+			var client     = new ClientSocket();
+			var connection = sinon.spy();
+			var error      = new Error("Simulated failure.");
+			var failure    = sinon.spy();
 
 			var run;
 			var socket;
@@ -105,12 +121,15 @@ describe("A namespace", function () {
 				run = sinon.stub(namespace, "run");
 				run.callsArgWith(1, error);
 
+				namespace.once("connection", connection);
+
 				client.once("error", failure);
 				socket = namespace.add(client);
 			});
 
 			after(function () {
 				client.removeListener("error", failure);
+				namespace.removeListener("connection", connection);
 				run.restore();
 			});
 
@@ -129,6 +148,10 @@ describe("A namespace", function () {
 			it("emits an error on the socket", function () {
 				expect(failure.callCount, "failure").to.equal(1);
 				expect(failure.firstCall.args[0], "message").to.equal(error.message);
+			});
+
+			it("does not emit a connection event", function () {
+				expect(connection.callCount, "connection").to.equal(0);
 			});
 		});
 	});
